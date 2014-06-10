@@ -6,32 +6,38 @@
     tools:context="com.saiganeshk.suryagallery.Home"
     tools:ignore="MergeRootFrame" >
         
-	<ProgressBar
-		android:id="@+id/downloadProgressBar"
-		style="?android:attr/progressBarStyleHorizontal"
-		android:layout_width="fill_parent"
-		android:layout_height="25dp"
-		android:layout_marginTop="2dp"
-		android:visibility="invisible"
-		android:layout_alignParentLeft="true"
-		android:layout_alignParentRight="true"
-		android:layout_alignParentTop="true" />
+    <RelativeLayout 
+        android:id="@+id/topLayout"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content">
+        
+		<ProgressBar
+			android:id="@+id/downloadProgressBar"
+			style="?android:attr/progressBarStyleHorizontal"
+			android:layout_width="fill_parent"
+			android:layout_height="25dp"
+			android:layout_marginTop="2dp"
+			android:visibility="invisible"
+			android:layout_alignParentLeft="true"
+			android:layout_alignParentRight="true"
+			android:layout_alignParentTop="true" />
+		
+		<Button
+			android:id="@+id/refreshButton"
+			style="?android:attr/buttonStyleSmall"
+			android:layout_width="25dp"
+			android:layout_height="25dp"
+			android:layout_marginTop="2dp"
+			android:background="@drawable/refresh"
+			android:layout_alignParentRight="true"
+			android:layout_alignParentTop="true" />
+	</RelativeLayout>
 	
-	<Button
-		android:id="@+id/refreshButton"
-		style="?android:attr/buttonStyleSmall"
-		android:layout_width="25dp"
-		android:layout_height="25dp"
-		android:layout_marginTop="2dp"
-		android:background="@drawable/refresh"
-		android:layout_alignParentRight="true"
-		android:layout_alignParentTop="true" />
-
 	<ru.truba.touchgallery.GalleryWidget.GalleryViewPager 
 	    android:id="@+id/galleryPager"
 	    android:layout_width="match_parent" 
 	    android:layout_height="match_parent"
-	    android:layout_below="@+id/refreshButton"
+	    android:layout_below="@+id/topLayout"
 	    android:background="#444444" />
 
 </RelativeLayout>
