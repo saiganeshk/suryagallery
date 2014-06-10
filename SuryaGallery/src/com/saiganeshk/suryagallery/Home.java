@@ -81,6 +81,7 @@ public class Home extends Activity {
 	private void loadImageGallery() {
 		try {
 			galleryPager.removeAllViewsInLayout();
+			imageUrlList.clear();
 			
 			File root = Environment.getExternalStorageDirectory();
 			String basePath = root.getAbsolutePath() + "/suryagallery/images/";
