@@ -1,0 +1,47 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/container"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    tools:context="com.saiganeshk.suryagallery.Home"
+    tools:ignore="MergeRootFrame" >
+        
+	<ProgressBar
+		android:id="@+id/downloadProgressBar"
+		style="?android:attr/progressBarStyleHorizontal"
+		android:layout_width="fill_parent"
+		android:layout_height="25dp"
+		android:layout_marginTop="2dp"
+		android:visibility="invisible"
+		android:layout_alignParentLeft="true"
+		android:layout_alignParentRight="true"
+		android:layout_alignParentTop="true" />
+	
+	<Button
+		android:id="@+id/refreshButton"
+		style="?android:attr/buttonStyleSmall"
+		android:layout_width="25dp"
+		android:layout_height="25dp"
+		android:layout_marginTop="2dp"
+		android:background="@drawable/refresh"
+		android:layout_alignParentRight="true"
+		android:layout_alignParentTop="true" />
+
+	<GridView
+	    android:id="@+id/gridView"
+	    android:layout_width="fill_parent"
+	    android:layout_height="fill_parent"
+	    android:layout_alignParentLeft="true"
+	    android:layout_below="@+id/refreshButton"
+	    android:numColumns="2" >
+	</GridView>
+
+	<ProgressBar
+	    android:id="@+id/imageProgressBar"
+	    style="?android:attr/progressBarStyleLarge"
+	    android:layout_width="wrap_content"
+	    android:layout_height="wrap_content"
+	    android:layout_centerHorizontal="true"
+	    android:layout_centerVertical="true" />
+
+</RelativeLayout>
