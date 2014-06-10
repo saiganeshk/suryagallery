@@ -5,6 +5,7 @@ import java.io.File;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+import android.app.Activity;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -12,7 +13,6 @@ import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
-import android.support.v7.app.ActionBarActivity;
 import android.util.DisplayMetrics;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -32,7 +32,7 @@ import com.saiganeshk.suryagallery.utils.CheckNetAvailability;
 import com.saiganeshk.suryagallery.utils.CommunicationModule;
 import com.saiganeshk.suryagallery.utils.MemoryCache;
 
-public class Home extends ActionBarActivity {
+public class Home extends Activity {
 	private ProgressBar downloadProgressBar, imageProgressBar;
 	private Button refreshButton;
 	private GridView gridView;
@@ -64,21 +64,11 @@ public class Home extends ActionBarActivity {
 
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
-
-		// Inflate the menu; this adds items to the action bar if it is present.
-		getMenuInflater().inflate(R.menu.home, menu);
 		return true;
 	}
 
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
-		// Handle action bar item clicks here. The action bar will
-		// automatically handle clicks on the Home/Up button, so long
-		// as you specify a parent activity in AndroidManifest.xml.
-		int id = item.getItemId();
-		if (id == R.id.action_settings) {
-			return true;
-		}
 		return super.onOptionsItemSelected(item);
 	}
 	
