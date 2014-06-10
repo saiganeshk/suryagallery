@@ -1,56 +1,42 @@
 package com.saiganeshk.suryagallery;
 
 import java.io.File;
+import java.util.ArrayList;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+import ru.truba.touchgallery.GalleryWidget.GalleryViewPager;
+import ru.truba.touchgallery.GalleryWidget.UrlPagerAdapter;
 import android.app.Activity;
-import android.content.Context;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
-import android.util.DisplayMetrics;
-import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
-import android.view.ViewGroup;
-import android.widget.BaseAdapter;
 import android.widget.Button;
-import android.widget.GridView;
-import android.widget.ImageView;
 import android.widget.ProgressBar;
-import android.widget.RelativeLayout;
 import android.widget.Toast;
 
 import com.saiganeshk.suryagallery.utils.CheckNetAvailability;
 import com.saiganeshk.suryagallery.utils.CommunicationModule;
-import com.saiganeshk.suryagallery.utils.MemoryCache;
 
 public class Home extends Activity {
-	private ProgressBar downloadProgressBar, imageProgressBar;
+	private ProgressBar downloadProgressBar;
 	private Button refreshButton;
-	private GridView gridView;
-	private DisplayMetrics dm;
-	MemoryCache cache;
+	private GalleryViewPager galleryPager;
+	public static ArrayList<String> imageUrlList = new ArrayList<String>();
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_home);
 		
-		dm = new DisplayMetrics();
-		getWindowManager().getDefaultDisplay().getMetrics(dm);
-		
-		cache = new MemoryCache();
-		
+		galleryPager = (GalleryViewPager) findViewById(R.id.galleryPager);
 		downloadProgressBar = (ProgressBar) findViewById(R.id.downloadProgressBar);
-		imageProgressBar = (ProgressBar) findViewById(R.id.imageProgressBar);
 		refreshButton = (Button) findViewById(R.id.refreshButton);
 		refreshButton.setOnClickListener(new OnClickListener() {
 			@Override
@@ -59,7 +45,7 @@ public class Home extends Activity {
 			}
 		});
 		
-		loadImageToGrids();
+		loadImageGallery();
 	}
 
 	@Override
@@ -92,11 +78,9 @@ public class Home extends Activity {
 		}
 	}
 	
-	private void loadImageToGrids() {
+	private void loadImageGallery() {
 		try {
-			gridView = (GridView) findViewById(R.id.gridView);
-			gridView.removeAllViewsInLayout();
-			imageProgressBar.setVisibility(View.VISIBLE);
+			galleryPager.removeAllViewsInLayout();
 			
 			File root = Environment.getExternalStorageDirectory();
 			String basePath = root.getAbsolutePath() + "/suryagallery/images/";
@@ -104,98 +88,21 @@ public class Home extends Activity {
 			
 			if (imageBase.exists() && imageBase.isDirectory()) {
 				String[] files = imageBase.list();
-				ImageGridAdapter gridAdapter = new ImageGridAdapter(this, files, basePath);
-				gridView.setAdapter(gridAdapter);
+				for (String fileName : files) {
+					String url = "file://" + new File(basePath+fileName).getAbsolutePath();
+					imageUrlList.add(url);
+				}
+				
+				UrlPagerAdapter pagerAdapter = new UrlPagerAdapter(this, Home.imageUrlList);
+				galleryPager.setOffscreenPageLimit(3);
+				galleryPager.setAdapter(pagerAdapter);
 			}
 			else {
 				downloadImages();
 			}
-			
-			imageProgressBar.setVisibility(View.GONE);
 		}
 		catch (Exception e) {
 			e.printStackTrace();
-		}
-	}
-	
-	class ImageGridAdapter extends BaseAdapter {
-		private String basePath;
-		private String[] objects;
-		
-		public ImageGridAdapter(Context context, String[] objects, String basePath) {
-			this.basePath = basePath;
-			this.objects = objects;
-		}
-		
-		@Override
-		public View getView(int position, View convertView, ViewGroup parent) {
-			RelativeLayout gridItemLayout = (RelativeLayout) LayoutInflater.from(Home.this).inflate(R.layout.grid_item, null);
-			
-			try {
-				String filePath = this.basePath+this.getItem(position);
-				File imageFile = new File(filePath);
-				
-				if (imageFile.exists()) {
-					ImageViewLoadAsyncTask imageLoadTask = new ImageViewLoadAsyncTask();
-					
-					if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
-						imageLoadTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, filePath);
-					}
-				    else {
-				    	imageLoadTask.execute(filePath);
-				    }
-					
-					Bitmap bitmap = imageLoadTask.get();
-					ImageView imageView = (ImageView) gridItemLayout.findViewById(R.id.imageView);
-					imageView.setImageBitmap(bitmap);
-					bitmap = null;
-				}
-				else {
-					gridItemLayout.setVisibility(View.GONE);
-				}
-			}
-			catch (Exception e) {
-				e.printStackTrace();
-			}
-			
-			return gridItemLayout;
-		}
-
-		@Override
-		public int getCount() {
-			return this.objects.length;
-		}
-
-		@Override
-		public Object getItem(int position) {
-			return this.objects[position];
-		}
-
-		@Override
-		public long getItemId(int position) {
-			return 0;
-		}
-	}
-	
-	class ImageViewLoadAsyncTask extends AsyncTask<String, Void, Bitmap> {
-		@Override
-		protected Bitmap doInBackground(String... params) {
-			Bitmap bitmap = cache.getBitmapFromMemCache(params[0]);
-			if (bitmap != null) {
-				return bitmap;
-			}
-			
-			try {
-				bitmap = Bitmap.createScaledBitmap(BitmapFactory.decodeFile(params[0], null), dm.widthPixels/2, dm.heightPixels/4, false);
-				cache.addBitmapToMemoryCache(params[0], bitmap);
-				
-				return bitmap;
-			}
-			catch (Exception e) {
-				e.printStackTrace();
-			}
-			
-			return null;
 		}
 	}
 	
@@ -236,11 +143,10 @@ public class Home extends Activity {
 		@Override
 		protected void onPostExecute(Void result) {
 			try {
-				Thread.sleep(100);
 				downloadProgressBar.setProgress(0);
 				downloadProgressBar.setVisibility(View.GONE);
 				refreshButton.setVisibility(View.VISIBLE);
-				loadImageToGrids();
+				loadImageGallery();
 			}
 			catch (Exception e) {
 				e.printStackTrace();

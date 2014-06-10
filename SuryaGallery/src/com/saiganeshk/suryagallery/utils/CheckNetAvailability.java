@@ -20,7 +20,7 @@ public class CheckNetAvailability {
 			protected Boolean doInBackground(Void... params) {
 				Boolean status = false;
 				try {
-					String urlString = context.getResources().getString(R.string.api);
+					String urlString = context.getResources().getString(R.string.api) + "?meta=true";
 					URL url = new URL(urlString);
 					final HttpURLConnection urlc = (HttpURLConnection) url.openConnection();
 					urlc.setRequestProperty("User-Agent", "Android Application");
