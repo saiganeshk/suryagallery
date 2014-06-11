@@ -146,6 +146,7 @@ public class Home extends Activity {
 	
 	private void downloadImages() {
 		if (CheckNetAvailability.isAvailable(this)) {
+			galleryPager.setVisibility(View.VISIBLE);
 			downloadProgressBar.setProgress(0);
 			downloadProgressBar.setVisibility(View.VISIBLE);
 			refreshButton.setVisibility(View.GONE);
@@ -160,6 +161,10 @@ public class Home extends Activity {
 		    }
 		}
 		else {
+			if (imageUrlList.isEmpty()) {
+				galleryPager.setVisibility(View.INVISIBLE);
+			}
+			
 			Toast.makeText(this, "We are experiencing limited connectivity to our servers. Please check your internet connection", Toast.LENGTH_SHORT).show();
 		}
 	}
