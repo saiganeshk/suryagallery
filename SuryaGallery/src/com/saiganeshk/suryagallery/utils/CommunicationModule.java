@@ -28,7 +28,7 @@ import android.os.Build;
 import android.os.Environment;
 
 public class CommunicationModule {
-	public static final int GET = 1, POST = 2;
+	public static final int GET = 1, POST = 2, FILE = 1, URL = 2;
 	
 	/**
 	 * 
@@ -114,40 +114,59 @@ public class CommunicationModule {
 		return response;
 	}
 	
-	public static void saveToFile(final String downloadUrl, final String fileName, final Context context) {
+	public static void saveToFile(final String content, final String fileName, final Context context, final int type) {
 		try {
-			URL url = new URL(downloadUrl);
-			HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
-			urlConnection.setRequestMethod("GET");
-            urlConnection.setDoOutput(true);
-            
-            urlConnection.connect();
-            
-			File root = Environment.getExternalStorageDirectory();
-			String path = root.getAbsolutePath() + "/suryagallery/images/";
-			
-			File dir = new File(path);
-			if(!dir.exists()) {
-				dir.mkdirs();
-			}
-			
-			File file = new File(dir, fileName);
-			if (!file.exists()) {
+			if (type == FILE) {
+				File root = Environment.getExternalStorageDirectory();
+				String path = root.getAbsolutePath() + "/suryagallery/cache/";
+				
+				File dir = new File(path);
+				if(!dir.exists()) {
+					dir.mkdirs();
+				}
+				
+				File file = new File(dir, fileName);
 				FileOutputStream fos = new FileOutputStream(file);
-				
-				InputStream inputStream = urlConnection.getInputStream();
-				
-				byte[] buffer = new byte[1024];
-                int bufferLength = 0;
-                
-                while ((bufferLength = inputStream.read(buffer)) > 0) {
-                    fos.write(buffer, 0, bufferLength);
-                }
-				
+				fos.write(content.getBytes());
 				fos.flush();
 				fos.close();
 				
 				System.out.println("File created with path: "+path+fileName);
+			}
+			else {
+				URL url = new URL(content);
+				HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
+				urlConnection.setRequestMethod("GET");
+	            urlConnection.setDoOutput(true);
+	            
+	            urlConnection.connect();
+	            
+				File root = Environment.getExternalStorageDirectory();
+				String path = root.getAbsolutePath() + "/suryagallery/images/";
+				
+				File dir = new File(path);
+				if(!dir.exists()) {
+					dir.mkdirs();
+				}
+				
+				File file = new File(dir, fileName);
+				if (!file.exists()) {
+					FileOutputStream fos = new FileOutputStream(file);
+					
+					InputStream inputStream = urlConnection.getInputStream();
+					
+					byte[] buffer = new byte[1024];
+	                int bufferLength = 0;
+	                
+	                while ((bufferLength = inputStream.read(buffer)) > 0) {
+	                    fos.write(buffer, 0, bufferLength);
+	                }
+					
+					fos.flush();
+					fos.close();
+					
+					System.out.println("File created with path: "+path+fileName);
+				}
 			}
 		}
 		catch (Exception e) {
@@ -165,7 +184,7 @@ public class CommunicationModule {
 				
 				try {
 					File root = Environment.getExternalStorageDirectory();
-					String localPath = root.getAbsolutePath() + "/suryagallery/images/";
+					String localPath = root.getAbsolutePath() + "/suryagallery/cache/";
 					
 					File myFile = new File(localPath+fileName);
 					if (!myFile.exists()) {
@@ -216,7 +235,7 @@ public class CommunicationModule {
 			@Override
 			protected Void doInBackground(Void... params) {
 				File root = Environment.getExternalStorageDirectory();
-				String localPath = root.getAbsolutePath() + "/suryagallery/images/";
+				String localPath = root.getAbsolutePath() + "/suryagallery/cache/";
 				
 				try {
 					File myFile = new File(localPath+fileName);

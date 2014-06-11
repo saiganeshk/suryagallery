@@ -1,8 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-
     <string name="app_name">Surya Gallery</string>
     <string name="action_settings">Settings</string>
+    
+    <string name="activationtext">Activation Key</string>
+    <string name="submit">Submit</string>
+    
     <string name="api">http://surya.saiganeshk.com/api/getmedia.php</string>
-
+	<string name="key">100514</string>
 </resources>
