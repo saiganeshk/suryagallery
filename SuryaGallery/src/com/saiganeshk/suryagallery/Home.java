@@ -95,7 +95,7 @@ public class Home extends Activity {
 				}
 				
 				UrlPagerAdapter pagerAdapter = new UrlPagerAdapter(this, Home.imageUrlList);
-				galleryPager.setOffscreenPageLimit(3);
+				galleryPager.setOffscreenPageLimit(1);
 				galleryPager.setAdapter(pagerAdapter);
 			}
 			else {

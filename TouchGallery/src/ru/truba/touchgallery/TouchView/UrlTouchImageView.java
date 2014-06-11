@@ -17,6 +17,12 @@
  */
 package ru.truba.touchgallery.TouchView;
 
+import java.io.InputStream;
+import java.net.URL;
+import java.net.URLConnection;
+
+import ru.truba.touchgallery.R;
+import ru.truba.touchgallery.TouchView.InputStreamWrapper.InputStreamProgressListener;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -28,13 +34,6 @@ import android.widget.ImageView.ScaleType;
 import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
-
-import java.io.InputStream;
-import java.net.URL;
-import java.net.URLConnection;
-
-import ru.truba.touchgallery.R;
-import ru.truba.touchgallery.TouchView.InputStreamWrapper.InputStreamProgressListener;
 
 public class UrlTouchImageView extends RelativeLayout {
     protected ProgressBar mProgressBar;
@@ -118,46 +117,102 @@ public class UrlTouchImageView extends RelativeLayout {
         @Override
         protected Bitmap doInBackground(String... strings) {
             String url = strings[0];
-            Bitmap bm = null;
+            InputStreamWrapper bis = null;
+            Bitmap bitmap = null;
+            
             try {
                 URL aURL = new URL(url);
                 URLConnection conn = aURL.openConnection();
                 conn.connect();
                 InputStream is = conn.getInputStream();
                 int totalLen = conn.getContentLength();
-                InputStreamWrapper bis = new InputStreamWrapper(is, 8192, totalLen);
+                bis = new InputStreamWrapper(is, 8192, totalLen);
                 bis.setProgressListener(new InputStreamProgressListener()
 				{					
 					@Override
-					public void onProgress(float progressValue, long bytesLoaded,
-							long bytesTotal)
+					public void onProgress(float progressValue, long bytesLoaded, long bytesTotal)
 					{
 						publishProgress((int)(progressValue * 100));
 					}
 				});
-                bm = BitmapFactory.decodeStream(bis);
+                
+                bitmap = generateBitmap(bis, 2);
                 bis.close();
                 is.close();
-            } catch (Exception e) {
+            } 
+            catch (Exception e) {
                 e.printStackTrace();
             }
-            return bm;
+            catch (Error e) {
+            	System.gc();
+				e.printStackTrace();
+			}
+            
+            return bitmap;
+        }
+        
+        private Bitmap generateBitmap(InputStreamWrapper bis, int sampleSize) {
+        	Bitmap bitmap = null;
+        	
+        	try {
+        		BitmapFactory.Options options = new BitmapFactory.Options();
+                options.inSampleSize = sampleSize;
+                bitmap = BitmapFactory.decodeStream(bis, null, options);
+                bis.close();
+        	}
+        	catch (Exception e) {
+				e.printStackTrace();
+				if (bitmap != null && bitmap.isRecycled()) {
+					bitmap.recycle();
+					bitmap = null;
+				}
+				
+				return generateBitmap(bis, sampleSize*2);
+			}
+        	catch (Error e) {
+        		System.gc();
+				e.printStackTrace();
+				if (bitmap != null && bitmap.isRecycled()) {
+					bitmap.recycle();
+					bitmap = null;
+				}
+				
+				return generateBitmap(bis, sampleSize*2);
+			}
+        	
+        	return bitmap;
         }
         
         @Override
         protected void onPostExecute(Bitmap bitmap) {
-        	if (bitmap == null) 
-        	{
-        		mImageView.setScaleType(ScaleType.CENTER);
-        		bitmap = BitmapFactory.decodeResource(getResources(), R.drawable.no_photo);
-        		mImageView.setImageBitmap(bitmap);
-        	}
-        	else 
-        	{
-        		mImageView.setScaleType(ScaleType.MATRIX);
+        	try {
+	        	if (bitmap == null) {
+        			mImageView.setScaleType(ScaleType.CENTER);
+            		bitmap = BitmapFactory.decodeResource(getResources(), R.drawable.no_photo);
+	        	}
+	        	else {
+	        		mImageView.setScaleType(ScaleType.MATRIX);
+	        	}
+	        	
 	            mImageView.setImageBitmap(bitmap);
         	}
-            mImageView.setVisibility(VISIBLE);
+        	catch (Exception e) {
+				e.printStackTrace();
+				if (bitmap != null && bitmap.isRecycled()) {
+					bitmap.recycle();
+					bitmap = null;
+				}
+			}
+        	catch (Error e) {
+        		System.gc();
+				e.printStackTrace();
+				if (bitmap != null && bitmap.isRecycled()) {
+					bitmap.recycle();
+					bitmap = null;
+				}
+			}
+        	
+        	mImageView.setVisibility(VISIBLE);
             mProgressBar.setVisibility(GONE);
         }
 

@@ -372,6 +372,7 @@ public class TouchImageView extends ImageView {
         super.setImageBitmap(bm);
         bmWidth = bm.getWidth();
         bmHeight = bm.getHeight();
+        bm = null;
     }
     @Override
     protected void onMeasure (int widthMeasureSpec, int heightMeasureSpec)
