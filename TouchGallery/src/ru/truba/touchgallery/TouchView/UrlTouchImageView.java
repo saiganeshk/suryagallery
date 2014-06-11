@@ -29,6 +29,7 @@ import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.os.AsyncTask;
 import android.util.AttributeSet;
+import android.util.DisplayMetrics;
 import android.widget.ImageView;
 import android.widget.ImageView.ScaleType;
 import android.widget.ProgressBar;
@@ -157,6 +158,8 @@ public class UrlTouchImageView extends RelativeLayout {
         	try {
         		BitmapFactory.Options options = new BitmapFactory.Options();
                 options.inSampleSize = sampleSize;
+                options.inTargetDensity = DisplayMetrics.DENSITY_DEFAULT;
+                options.inScaled = true;
                 bitmap = BitmapFactory.decodeStream(bis, null, options);
                 bis.close();
         	}
