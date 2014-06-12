@@ -114,7 +114,9 @@ public class CommunicationModule {
 		return response;
 	}
 	
-	public static void saveToFile(final String content, final String fileName, final Context context, final int type) {
+	public static boolean saveToFile(final String content, final String fileName, final Context context, final int type) {
+		boolean status = false;
+		
 		try {
 			if (type == FILE) {
 				File root = Environment.getExternalStorageDirectory();
@@ -132,6 +134,7 @@ public class CommunicationModule {
 				fos.close();
 				
 				System.out.println("File created with path: "+path+fileName);
+				status = true;
 			}
 			else {
 				URL url = new URL(content);
@@ -166,12 +169,15 @@ public class CommunicationModule {
 					fos.close();
 					
 					System.out.println("File created with path: "+path+fileName);
+					status = true;
 				}
 			}
 		}
 		catch (Exception e) {
 			e.printStackTrace();
 		}
+		
+		return status;
 	}
 	
 	public static String getFromFile(final String fileName, final Context context) {

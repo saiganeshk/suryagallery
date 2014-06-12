@@ -2,6 +2,8 @@ package com.saiganeshk.suryagallery;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -185,6 +187,9 @@ public class Home extends Activity {
 					imageUrlList.add(url);
 				}
 				
+				Collections.sort(imageUrlList, new FileNameComparator());
+				System.out.println(imageUrlList);
+				
 				UrlPagerAdapter pagerAdapter = new UrlPagerAdapter(this, Home.imageUrlList);
 				galleryPager.setOffscreenPageLimit(1);
 				galleryPager.setAdapter(pagerAdapter);
@@ -196,6 +201,14 @@ public class Home extends Activity {
 		catch (Exception e) {
 			e.printStackTrace();
 		}
+	}
+	
+	private static class FileNameComparator implements Comparator<String> {
+		@Override
+		public int compare(String lhs, String rhs) {
+			return rhs.compareToIgnoreCase(lhs);
+		}
+		
 	}
 	
 	class ImageDownloadAsyncTask extends AsyncTask<Void, Integer, Void> {
@@ -214,8 +227,8 @@ public class Home extends Activity {
 				for (int index=0; index<count; index++) {
 					String fileName = files.getString(index);
 					String fileUrl = getResources().getString(R.string.api) + "?file=" + fileName;
-					CommunicationModule.saveToFile(fileUrl, fileName, Home.this, CommunicationModule.URL);
-					publishProgress(step);
+					boolean status = CommunicationModule.saveToFile(fileUrl, fileName, Home.this, CommunicationModule.URL);
+					publishProgress(step, (status) ? 1:0);
 				}
 			}
 			catch (Exception e) {
@@ -228,6 +241,9 @@ public class Home extends Activity {
 		@Override
 		protected void onProgressUpdate(Integer... values) {
 			downloadProgressBar.incrementProgressBy(values[0]);
+			if (values[1] == 1) {
+				loadImageGallery();
+			}
 			
 			super.onProgressUpdate(values);
 		}
