@@ -5,19 +5,19 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 
-import org.json.JSONArray;
-import org.json.JSONObject;
-
 import ru.truba.touchgallery.GalleryWidget.GalleryViewPager;
 import ru.truba.touchgallery.GalleryWidget.UrlPagerAdapter;
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.DialogInterface.OnKeyListener;
-import android.os.AsyncTask;
-import android.os.Build;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.os.Bundle;
 import android.os.Environment;
+import android.support.v4.content.LocalBroadcastManager;
 import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -32,6 +32,7 @@ import android.widget.Toast;
 
 import com.saiganeshk.suryagallery.utils.CheckNetAvailability;
 import com.saiganeshk.suryagallery.utils.CommunicationModule;
+import com.saiganeshk.suryagallery.utils.ImageDownloadService;
 
 public class Home extends Activity {
 	private ProgressBar downloadProgressBar;
@@ -146,6 +147,42 @@ public class Home extends Activity {
 		loadImageGallery();
 	}
 	
+	private class ResponseReceiver extends BroadcastReceiver {
+		@Override
+		public void onReceive(Context context, Intent intent) {
+			String response = (intent.getExtras() != null) ? intent.getExtras().getString(ImageDownloadService.STATUS) : null;
+			
+			if (response.equals(ImageDownloadService.SUCCESS)) {
+				runOnUiThread(new Runnable() {
+					@Override
+					public void run() {
+						downloadProgressBar.incrementProgressBy(ImageDownloadService.progress);
+						loadImageGallery();
+					}
+				});
+			}
+			else if (response.equals(ImageDownloadService.FAIL)) {
+				runOnUiThread(new Runnable() {
+					@Override
+					public void run() {
+						downloadProgressBar.incrementProgressBy(ImageDownloadService.progress);
+					}
+				});
+			}
+			else if (response.equals(ImageDownloadService.DONE)) {
+				runOnUiThread(new Runnable() {
+					@Override
+					public void run() {
+						downloadProgressBar.setProgress(0);
+						downloadProgressBar.setVisibility(View.GONE);
+						refreshButton.setVisibility(View.VISIBLE);
+						loadImageGallery();
+					}
+				});
+			}
+		}		
+	}
+	
 	private void downloadImages() {
 		if (CheckNetAvailability.isAvailable(this)) {
 			galleryPager.setVisibility(View.VISIBLE);
@@ -153,14 +190,13 @@ public class Home extends Activity {
 			downloadProgressBar.setVisibility(View.VISIBLE);
 			refreshButton.setVisibility(View.GONE);
 			
-			ImageDownloadAsyncTask imageTask = new ImageDownloadAsyncTask();
+			Intent imageDownloadIntent = new Intent(this, ImageDownloadService.class);
+			startService(imageDownloadIntent);
 			
-			if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
-				imageTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
-			}
-		    else {
-		    	imageTask.execute();
-		    }
+			IntentFilter imageDownloadFilter = new IntentFilter(ImageDownloadService.BROADCAST_ACTION);
+	        
+	        ResponseReceiver imageDownloadReceiver = new ResponseReceiver();
+	        LocalBroadcastManager.getInstance(this).registerReceiver(imageDownloadReceiver, imageDownloadFilter);
 		}
 		else {
 			if (imageUrlList.isEmpty()) {
@@ -188,8 +224,6 @@ public class Home extends Activity {
 				}
 				
 				Collections.sort(imageUrlList, new FileNameComparator());
-				System.out.println(imageUrlList);
-				
 				UrlPagerAdapter pagerAdapter = new UrlPagerAdapter(this, Home.imageUrlList);
 				galleryPager.setOffscreenPageLimit(1);
 				galleryPager.setAdapter(pagerAdapter);
@@ -207,60 +241,6 @@ public class Home extends Activity {
 		@Override
 		public int compare(String lhs, String rhs) {
 			return rhs.compareToIgnoreCase(lhs);
-		}
-		
-	}
-	
-	class ImageDownloadAsyncTask extends AsyncTask<Void, Integer, Void> {
-		@Override
-		protected Void doInBackground(Void... params) {
-			String metaApi = getResources().getString(R.string.api) + "?meta=true";
-			String metaResponse = CommunicationModule.load(metaApi, CommunicationModule.GET, null);
-			
-			try {
-				JSONObject metaJson = new JSONObject(metaResponse);
-				
-				JSONArray files = metaJson.getJSONObject("contents").getJSONArray("files");
-				int count = files.length();
-				int step = (int) Math.ceil(100.0/count);
-				
-				for (int index=0; index<count; index++) {
-					String fileName = files.getString(index);
-					String fileUrl = getResources().getString(R.string.api) + "?file=" + fileName;
-					boolean status = CommunicationModule.saveToFile(fileUrl, fileName, Home.this, CommunicationModule.URL);
-					publishProgress(step, (status) ? 1:0);
-				}
-			}
-			catch (Exception e) {
-				e.printStackTrace();
-			}
-			
-			return null;
-		}
-		
-		@Override
-		protected void onProgressUpdate(Integer... values) {
-			downloadProgressBar.incrementProgressBy(values[0]);
-			if (values[1] == 1) {
-				loadImageGallery();
-			}
-			
-			super.onProgressUpdate(values);
-		}
-		
-		@Override
-		protected void onPostExecute(Void result) {
-			try {
-				downloadProgressBar.setProgress(0);
-				downloadProgressBar.setVisibility(View.GONE);
-				refreshButton.setVisibility(View.VISIBLE);
-				loadImageGallery();
-			}
-			catch (Exception e) {
-				e.printStackTrace();
-			}
-			
-			super.onPostExecute(result);
 		}
 	}
 }
